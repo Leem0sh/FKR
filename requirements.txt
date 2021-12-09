@@ -1,0 +1,7 @@
+fastapi==0.70.0
+kafka==1.3.5
+kafka_python==2.0.2
+nats==0.1
+nats_py==2.0.0rc2
+pydantic==1.8.2
+starlette==0.16.0
