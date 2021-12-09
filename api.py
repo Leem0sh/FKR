@@ -77,7 +77,7 @@ async def _(
 
     response = None
     CID = uuid4().hex
-    parsed_description = parse_obj_as(dict, description)
+    parsed_description = parse_obj_as(DimensionRequestBodyModel, description)
 
     print(CID, parsed_description)
     await send_kafka_event(TOPIC_FROM_GATEWAY_TO_DS, producer, parsed_description.dict(), CID)
