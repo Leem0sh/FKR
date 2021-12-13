@@ -2,16 +2,12 @@
 version: '2'
 services:
 
-  nats:
-    image: nats:latest
+  redis:
+    image: "redis:alpine"
     ports:
-      - '4222:4222'
-      - '6222:6222'
-      - '8222:8222'
-
+      - 6379:6379
 
   kafka-ui:
-    container_name: kafka-ui
     image: provectuslabs/kafka-ui:latest
     ports:
       - 8080:8080

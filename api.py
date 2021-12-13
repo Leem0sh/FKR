@@ -6,11 +6,10 @@ from __future__ import annotations
 import json
 from uuid import uuid4
 
-import nats
 from fastapi import FastAPI, Depends
 from kafka import KafkaProducer
-from nats.aio.client import Client
 from pydantic import parse_obj_as
+from redis import Redis
 from starlette.responses import JSONResponse
 
 from finisher import TOPIC_FROM_GATEWAY_TO_DS
@@ -18,12 +17,14 @@ from kafka_clients import kafka_producer
 from models import DimensionRequestBodyModel
 
 app = FastAPI()
+rc = Redis(retry_on_timeout=True, socket_timeout=1)
+
 
 async def send_kafka_event(
-    topic: str,
-    producer: KafkaProducer,
-    message: dict,
-    CID,
+        topic: str,
+        producer: KafkaProducer,
+        message: dict,
+        CID,
 ) -> None:
     producer.send(
         topic,
@@ -34,31 +35,8 @@ async def send_kafka_event(
     producer.flush()
 
 
-
-async def nats_connect():
-    async def disconnected_cb():
-        print('Got disconnected!')
-
-    async def reconnected_cb():
-        print(f'Got reconnected to {nc.connected_url.netloc}')
-
-    async def error_cb(
-        e
-    ):
-        print(f'There was an error: {e}')
-
-    async def closed_cb():
-        print('Connection is closed')
-
-    # Connect to NATS with logging callbacks.
-    nc = await nats.connect(
-        error_cb=error_cb,
-        reconnected_cb=reconnected_cb,
-        disconnected_cb=disconnected_cb,
-        closed_cb=closed_cb,
-    )
-    return nc
-
+def redis_connect():
+    return rc.pubsub(ignore_subscribe_messages=True)
 
 
 @app.post(
@@ -69,27 +47,31 @@ async def nats_connect():
     include_in_schema=True,
 )
 async def _(
-    *,
-    producer: KafkaProducer = Depends(kafka_producer),
-    nats_consumer: Client = Depends(nats_connect),
-    description: DimensionRequestBodyModel,
+        *,
+        producer: KafkaProducer = Depends(kafka_producer),
+        redis_subscriber=Depends(redis_connect),
+        description: DimensionRequestBodyModel,
 ) -> JSONResponse:
-
     response = None
     CID = uuid4().hex
     parsed_description = parse_obj_as(DimensionRequestBodyModel, description)
 
     print(CID, parsed_description)
-    await send_kafka_event(TOPIC_FROM_GATEWAY_TO_DS, producer, parsed_description.dict(), CID)
-    sub = await nats_consumer.subscribe(CID)
-    try:
-        async for msg in sub.messages:
-            print(f"Received a message on '{msg.subject} {msg.reply}': {msg.data.decode()}")
-            response = json.loads(msg.data.decode())
-            await sub.unsubscribe(CID)
-
-
-
-    except Exception as e:
-        print(e)
-    return JSONResponse(status_code=200, content=response)
+    redis_subscriber.subscribe(CID)
+    await send_kafka_event(
+        TOPIC_FROM_GATEWAY_TO_DS,
+        producer,
+        parsed_description.dict(),
+        CID
+    )
+    while True:
+        message = redis_subscriber.get_message()
+        print(message)
+        if message:
+            break
+    redis_subscriber.close()
+    return JSONResponse(
+        status_code=200, content=json.loads(
+            message["data"].decode("utf-8")
+        )
+    )

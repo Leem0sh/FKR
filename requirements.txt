@@ -1,5 +1,5 @@
 fastapi==0.70.0
 kafka_python==2.0.2
-nats_py==2.0.0rc2
+redis==4.0.2
 pydantic==1.8.2
 starlette==0.16.0
