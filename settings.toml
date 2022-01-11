@@ -1,0 +1,18 @@
+[default]
+# Topics
+API_TO_SERVICE = "api.math.0.1"
+
+# Brokers
+
+BROKER = "kafka://localhost"
+BROKER_PORT = 9092
+KAFKA_BROKER4KAFKA = "localhost:9092"
+# Redis
+REDIS_HOST_URL = "localhost"
+REDIS_HOST_PORT = 6379
+REDIS_HOST_DB = 11
+
+# Header Names
+CID = "CID"
+REPLY_TO_OK_TOPIC = "Reply-OK"
+REPLY_TO_NOT_OK_TOPIC = "Reply-NOT-OK"

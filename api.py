@@ -4,39 +4,64 @@
 from __future__ import annotations
 
 import json
+from typing import Final, List
 from uuid import uuid4
 
 from fastapi import FastAPI, Depends
 from kafka import KafkaProducer
-from pydantic import parse_obj_as
-from redis import Redis
+from redis.client import PubSub
 from starlette.responses import JSONResponse
 
-from finisher import TOPIC_FROM_GATEWAY_TO_DS
-from kafka_clients import kafka_producer
-from models import DimensionRequestBodyModel
+from src.config import settings
+from src.kafka.kafka_clients import kafka_producer
+from src.models import MathModel
+from src.redis.redis_connect import redis_connect
 
 app = FastAPI()
-rc = Redis(retry_on_timeout=True, socket_timeout=1)
+
+err_postfix: Final = ".NOT_OK"
+ok_postfix: Final = ".OK"
+
+
+def group_subscribe(
+        redis_subscriber: PubSub,
+        channels: List[str]
+):
+    redis_subscriber.subscribe(*channels)
+    return redis_subscriber
+
+
+def gen_headers(
+        CID: str,
+        ok_channel: str,
+        err_channel: str,
+) -> List[tuple[str, bytes]]:
+    return [(settings.CID, bytes(CID, "utf-8")),
+            (settings.REPLY_TO_OK_TOPIC, bytes(ok_channel, "utf-8")),
+            (settings.REPLY_TO_NOT_OK_TOPIC, bytes(err_channel, "utf-8"))]
+
+
+def channel_preparation(
+        cid: str
+) -> tuple[str, str]:
+    ok_channel = f"{cid}{ok_postfix}"
+    err_channel = f"{cid}{err_postfix}"
+    return ok_channel, err_channel
 
 
 async def send_kafka_event(
         topic: str,
         producer: KafkaProducer,
         message: dict,
-        CID,
+        headers,
 ) -> None:
     producer.send(
         topic,
         key=None,
         value=message,
-        headers=[("CID", bytes(CID, "utf-8"))]
+        headers=headers
     )
     producer.flush()
-
-
-def redis_connect():
-    return rc.pubsub(ignore_subscribe_messages=True)
 
 
 @app.post(
@@ -49,26 +74,35 @@ def redis_connect():
 async def _(
         *,
         producer: KafkaProducer = Depends(kafka_producer),
-        redis_subscriber=Depends(redis_connect),
-        description: DimensionRequestBodyModel,
+        redis_pubsub=Depends(redis_connect),
+        values: MathModel,
 ) -> JSONResponse:
     response = None
-    CID = uuid4().hex
-    parsed_description = parse_obj_as(DimensionRequestBodyModel, description)
 
-    print(CID, parsed_description)
-    redis_subscriber.subscribe(CID)
-    await send_kafka_event(
-        TOPIC_FROM_GATEWAY_TO_DS,
-        producer,
-        parsed_description.dict(),
-        CID
+    CID = uuid4().hex
+    ok_channel, err_channel = channel_preparation(CID)
+    kafka_headers = gen_headers(
+        CID,
+        ok_channel,
+        err_channel,
     )
+    redis_subscriber = group_subscribe(redis_pubsub, [ok_channel, err_channel])
+
+    print("sending kafka event")
+    print(settings.API_TO_SERVICE, producer, values.dict(), kafka_headers)
+    await send_kafka_event(
+        settings.API_TO_SERVICE,
+        producer,
+        values.dict(),
+        kafka_headers
+    )
+    print("kafka event sent")
     while True:
         message = redis_subscriber.get_message()
         print(message)
         if message:
             break
+    print(message)
     redis_subscriber.close()
     return JSONResponse(
         status_code=200, content=json.loads(
