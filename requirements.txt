@@ -5,3 +5,5 @@ pydantic==1.9.0
 faust-streaming==0.7.9
 uvicorn==0.16.0
 dynaconf==3.1.7
+requests==2.27.1
+pytest==6.2.5
