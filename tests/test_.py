@@ -3,6 +3,7 @@ import unittest
 import pytest
 from pydantic import parse_obj_as, ValidationError, BaseModel
 
+from api import channel_preparation
 from src.models import ResultModel, MathModel
 from unittest import IsolatedAsyncioTestCase
 from src.service import operation_add
@@ -17,6 +18,19 @@ class MyTestCase(unittest.TestCase):
             rm = ResultModel(result=result)
             self.assertIsInstance(rm, BaseModel)
             self.assertEqual(rm.result, result)
+
+    def test_channel_preparation1(self):
+
+        cid = "123456abcd"
+        channels = channel_preparation(cid)
+        self.assertEqual(channels, (f"{cid}.OK", f"{cid}.NOT_OK"))
+
+
+    def test_channel_preparation2(self):
+
+        cid = "123456abcd"
+        channels = channel_preparation(cid)
+        self.assertNotEqual(channels, (f"{cid}.NOT_OK", f"{cid}.OK"))
 
 
 
