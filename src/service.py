@@ -10,4 +10,4 @@ async def operation_add(
         data: MathModel
 ) -> ResultModel:
     result = data.val1 + data.val2
-    return ResultModel(value=result)
+    return ResultModel(result=result)

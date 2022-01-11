@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import Final, List
 from uuid import uuid4
 
@@ -14,8 +15,13 @@ from starlette.responses import JSONResponse
 
 from src.config import settings
 from src.kafka.kafka_clients import kafka_producer
-from src.models import MathModel
+from src.log import configure_basic_logging
+from src.models import MathModel, ResultModel
 from src.redis.redis_connect import redis_connect
+
+configure_basic_logging()
+
+logger: Final = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -66,6 +72,7 @@ async def send_kafka_event(
 
 @app.post(
     "/test/",
+    response_model=ResultModel,
     description="Test description",
     summary="Test summary",
     tags=["Test"],
@@ -88,18 +95,19 @@ async def _(
     )
     redis_subscriber = group_subscribe(redis_pubsub, [ok_channel, err_channel])
 
-    print("sending kafka event")
-    print(settings.API_TO_SERVICE, producer, values.dict(), kafka_headers)
+    logger.info("sending kafka event")
+    logger.info(
+        f"{settings.API_TO_SERVICE}, {producer}, {values.dict()}, {kafka_headers}"
+    )
     await send_kafka_event(
         settings.API_TO_SERVICE,
         producer,
         values.dict(),
         kafka_headers
     )
-    print("kafka event sent")
+    logger.info("kafka event sent")
     while True:
         message = redis_subscriber.get_message()
-        print(message)
         if message:
             break
     print(message)

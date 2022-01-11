@@ -3,9 +3,13 @@
 
 from __future__ import annotations
 
+import logging
 import random
+from typing import Final
 
 import requests
+
+logger: Final = logging.getLogger(__name__)
 
 for x in range(1000):
     data = {"val1": random.randint(0, 100000),

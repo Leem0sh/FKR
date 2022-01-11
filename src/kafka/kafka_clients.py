@@ -4,12 +4,14 @@
 from __future__ import annotations
 
 import json
+from functools import cache
 
 from kafka import KafkaProducer
 
 from src.config import settings
 
 
+@cache
 def kafka_producer():
     return KafkaProducer(
         api_version=(2, 6),

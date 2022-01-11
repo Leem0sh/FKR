@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 
 class ResultModel(BaseModel):
-    value: int
+    result: int
 
 
 class MathModel(BaseModel):
