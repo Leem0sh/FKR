@@ -11,3 +11,6 @@ Simple example of event-driven architecture with Kafka publish/subscribe, Redis 
 5. `faust -A runner worker -l info`
 6. `uvicorn api:app --reload`
 7. `http://127.0.0.1:8000/docs`
+
+
+Kafka connect and Schema registry are not used in any case and can be deleted. 
