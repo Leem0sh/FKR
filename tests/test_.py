@@ -33,8 +33,6 @@ class MyTestCase(unittest.TestCase):
         self.assertNotEqual(channels, (f"{cid}.NOT_OK", f"{cid}.OK"))
 
 
-
-
 class Test(IsolatedAsyncioTestCase):
 
     async def test_operation_add1(self):
