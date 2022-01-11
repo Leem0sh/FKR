@@ -1,3 +1,8 @@
+## What is this? 
+
+Simple example of event-driven architecture with Kafka publish/subscribe, Redis Pub/Sub and Faust-streaming library.  
+
+
 ## How to run:
 1. `git clone https://github.com/Leem0sh/FKR.git`
 2. `pip install -r requirements.txt`
