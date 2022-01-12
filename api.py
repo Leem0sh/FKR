@@ -116,6 +116,8 @@ async def _(
         values: MathModel,
 ) -> JSONResponse:
     """
+    API Endpoint which sends Kafka events into Kafka topic, subscribes to
+    redis channel and waits for response (key-value)
 
     :param producer: Kafka producer dependency
     :param redis_pubsub: Redis PubSub client
@@ -149,7 +151,7 @@ async def _(
         message = redis_subscriber.get_message()
         if message:
             break
-    print(message)
+    logger.info(message)
     redis_subscriber.close()
     return JSONResponse(
         status_code=200, content=json.loads(

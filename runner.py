@@ -8,6 +8,7 @@ import logging
 from typing import Final
 
 import faust
+from faust import Stream
 
 from src.config import settings
 from src.log import configure_basic_logging
@@ -25,8 +26,14 @@ math_topic = app.topic(settings.API_TO_SERVICE, value_type=bytes)
 
 @app.agent(math_topic)
 async def math_streaming(
-        stream
-):
+        stream: Stream
+) -> None:
+    """
+    Catches event from stream, process operations and publishes to redis topic
+
+    :param stream: Kafka event stream
+    :return: None
+    """
     async for payload in stream.events():
         logger.info(payload)
         result = await operation_add(MathModel.parse_obj(payload.value))
