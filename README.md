@@ -17,4 +17,7 @@ Kafka connect and Schema registry are not used in any case and can be deleted.
 
 ## Description:
 
-API.py - FastAPI api with test endpoint which 
+api.py - FastAPI api with test endpoint which send an event to kafka and listens for unique ID channel in redis
+
+runner.py - Faust runner - service that listens to kafka topic, processing the event and sending response to redis
+unique ID channel
