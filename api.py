@@ -48,7 +48,7 @@ def _gen_headers(
         cid_name: str,
         ok_channel_name: str,
         err_channel_name: str,
-        CID: str,
+        cid: str,
         ok_channel: str,
         err_channel: str,
 ) -> List[tuple[str, bytes]]:
@@ -59,7 +59,7 @@ def _gen_headers(
     :param err_channel: Channel for != 200 responses
     :return: List of headers tuple[str,bytes]
     """
-    return [(cid_name, bytes(CID, "utf-8")),
+    return [(cid_name, bytes(cid, "utf-8")),
             (ok_channel_name, bytes(ok_channel, "utf-8")),
             (err_channel_name, bytes(err_channel, "utf-8"))]
 
@@ -125,13 +125,13 @@ async def _(
     :return: Response to the client
     """
 
-    CID = uuid4().hex
-    ok_channel, err_channel = _channel_preparation(CID)
+    cid: Final = uuid4().hex
+    ok_channel, err_channel = _channel_preparation(cid)
     kafka_headers = _gen_headers(
         settings.CID,
         settings.REPLY_TO_OK_CHANNEL,
         settings.REPLY_TO_NOT_OK_CHANNEL,
-        CID,
+        cid,
         ok_channel,
         err_channel,
     )
