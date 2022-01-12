@@ -124,7 +124,6 @@ async def _(
     :param values: MathModel - input data
     :return: Response to the client
     """
-    response = None
 
     CID = uuid4().hex
     ok_channel, err_channel = _channel_preparation(CID)
