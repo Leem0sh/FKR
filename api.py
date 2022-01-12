@@ -21,12 +21,12 @@ from src.redis.redis_connect import redis_connect
 
 configure_basic_logging()
 
-logger: Final = logging.getLogger(__name__)
+L: Final = logging.getLogger(__name__)
 
 app = FastAPI()
 
-err_postfix: Final = ".NOT_OK"
-ok_postfix: Final = ".OK"
+OK_POSTFIX: Final = ".OK"
+ERR_POSTFIX: Final = ".NOT_OK"
 
 
 def _group_subscribe(
@@ -73,8 +73,8 @@ def _channel_preparation(
     :param cid: Correlation ID
     :return: Correlation ID with postfixes - for subscription
     """
-    ok_channel = f"{cid}{ok_postfix}"
-    err_channel = f"{cid}{err_postfix}"
+    ok_channel = f"{cid}{OK_POSTFIX}"
+    err_channel = f"{cid}{ERR_POSTFIX}"
     return ok_channel, err_channel
 
 
@@ -137,7 +137,7 @@ async def _(
     )
     redis_subscriber = _group_subscribe(redis_pubsub, [ok_channel, err_channel])
 
-    logger.info(
+    L.info(
         f"{settings.API_TO_SERVICE}, {producer}, {values.dict()}, {kafka_headers}"
     )
     await send_kafka_event(
@@ -150,7 +150,7 @@ async def _(
         message = redis_subscriber.get_message()
         if message:
             break
-    logger.info(message)
+    L.info(message)
     redis_subscriber.close()
     return JSONResponse(
         status_code=200, content=json.loads(

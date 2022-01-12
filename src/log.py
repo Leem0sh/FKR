@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Final
 
-logger: Final = logging.getLogger(__name__)
+L: Final = logging.getLogger(__name__)
 
 
 def configure_basic_logging() -> None:

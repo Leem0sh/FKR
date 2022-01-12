@@ -1,9 +1,10 @@
-## What is this? 
+## What is this?
 
-Simple example of event-driven architecture with FastAPI gateway, Kafka publish/subscribe, Redis Pub/Sub and Faust-streaming library.  
-
+Simple example of event-driven architecture with FastAPI gateway, Kafka publish/subscribe, Redis Pub/Sub and
+Faust-streaming library.
 
 ## How to run:
+
 1. `git clone https://github.com/Leem0sh/FKR.git`
 2. `pip install -r requirements.txt`
 3. `docker-compose -f docker-compose.yml up`
@@ -12,5 +13,8 @@ Simple example of event-driven architecture with FastAPI gateway, Kafka publish/
 6. `uvicorn api:app --reload`
 7. `http://127.0.0.1:8000/docs`
 
+Kafka connect and Schema registry are not used in any case and can be deleted.
 
-Kafka connect and Schema registry are not used in any case and can be deleted. 
+## Description:
+
+API.py - FastAPI api with test endpoint which 

@@ -18,7 +18,7 @@ from src.service import operation_add
 
 configure_basic_logging()
 
-logger: Final = logging.getLogger(__name__)
+L: Final = logging.getLogger(__name__)
 
 app = faust.App("basic-math-app", broker=settings.BROKER)
 math_topic = app.topic(settings.API_TO_SERVICE, value_type=bytes)
@@ -35,14 +35,14 @@ async def math_streaming(
     :return: None
     """
     async for payload in stream.events():
-        logger.info(payload)
+        L.info(payload)
         result = await operation_add(MathModel.parse_obj(payload.value))
 
         REDIS_CONNECT.publish(
             payload.headers[settings.REPLY_TO_OK_TOPIC],
             json.dumps(result.dict())
         )
-        logger.info(
+        L.info(
             f"{result.dict()} sent to"
             f" {payload.headers[settings.REPLY_TO_OK_TOPIC]}"
         )
