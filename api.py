@@ -29,27 +29,50 @@ err_postfix: Final = ".NOT_OK"
 ok_postfix: Final = ".OK"
 
 
-def group_subscribe(
+def _group_subscribe(
         redis_subscriber: PubSub,
         channels: List[str]
-):
+) -> PubSub:
+    """
+    Subsrcibes to the list of channels (<CID>.OK, <CID>.NOT_OK)
+
+    :param redis_subscriber: Redis PubSub
+    :param channels: list of channels for subscription
+    :return: PubSub with subscribed channels
+    """
     redis_subscriber.subscribe(*channels)
     return redis_subscriber
 
 
-def gen_headers(
+def _gen_headers(
+        cid_name: str,
+        ok_channel_name: str,
+        err_channel_name: str,
         CID: str,
         ok_channel: str,
         err_channel: str,
 ) -> List[tuple[str, bytes]]:
-    return [(settings.CID, bytes(CID, "utf-8")),
-            (settings.REPLY_TO_OK_TOPIC, bytes(ok_channel, "utf-8")),
-            (settings.REPLY_TO_NOT_OK_TOPIC, bytes(err_channel, "utf-8"))]
+    """
+
+    :param CID: Correlation ID
+    :param ok_channel: Channel for 200 responses
+    :param err_channel: Channel for != 200 responses
+    :return: List of headers tuple[str,bytes]
+    """
+    return [(cid_name, bytes(CID, "utf-8")),
+            (ok_channel_name, bytes(ok_channel, "utf-8")),
+            (err_channel_name, bytes(err_channel, "utf-8"))]
 
 
-def channel_preparation(
+def _channel_preparation(
         cid: str
 ) -> tuple[str, str]:
+    """
+    Adds postfixes to the CID
+
+    :param cid: Correlation ID
+    :return: Correlation ID with postfixes - for subscription
+    """
     ok_channel = f"{cid}{ok_postfix}"
     err_channel = f"{cid}{err_postfix}"
     return ok_channel, err_channel
@@ -59,8 +82,16 @@ async def send_kafka_event(
         topic: str,
         producer: KafkaProducer,
         message: dict,
-        headers,
+        headers: List[tuple[str, bytes]],
 ) -> None:
+    """
+
+    :param topic: Targeted kafka topic
+    :param producer: Kafka producer
+    :param message: payload message
+    :param headers: kafka headers with channels and CID List[tuple[str, bytes]]
+    :return: None
+    """
     producer.send(
         topic,
         key=None,
@@ -84,18 +115,27 @@ async def _(
         redis_pubsub=Depends(redis_connect),
         values: MathModel,
 ) -> JSONResponse:
+    """
+
+    :param producer: Kafka producer dependency
+    :param redis_pubsub: Redis PubSub client
+    :param values: MathModel - input data
+    :return: Response to the client
+    """
     response = None
 
     CID = uuid4().hex
-    ok_channel, err_channel = channel_preparation(CID)
-    kafka_headers = gen_headers(
+    ok_channel, err_channel = _channel_preparation(CID)
+    kafka_headers = _gen_headers(
+        settings.CID,
+        settings.REPLY_TO_OK_CHANNEL,
+        settings.REPLY_TO_NOT_OK_CHANNEL,
         CID,
         ok_channel,
         err_channel,
     )
-    redis_subscriber = group_subscribe(redis_pubsub, [ok_channel, err_channel])
+    redis_subscriber = _group_subscribe(redis_pubsub, [ok_channel, err_channel])
 
-    logger.info("sending kafka event")
     logger.info(
         f"{settings.API_TO_SERVICE}, {producer}, {values.dict()}, {kafka_headers}"
     )
@@ -105,7 +145,6 @@ async def _(
         values.dict(),
         kafka_headers
     )
-    logger.info("kafka event sent")
     while True:
         message = redis_subscriber.get_message()
         if message:
