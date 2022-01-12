@@ -14,10 +14,10 @@ from redis.client import PubSub
 from starlette.responses import JSONResponse
 
 from src.config import settings
-from src.kafka.kafka_clients import kafka_producer
+from src.kafka_.kafka_clients import kafka_producer
 from src.log import configure_basic_logging
 from src.models import MathModel, ResultModel
-from src.redis.redis_connect import redis_connect
+from src.redis_.redis_connect import redis_connect
 
 configure_basic_logging()
 
@@ -83,10 +83,10 @@ async def send_kafka_event(
 ) -> None:
     """
 
-    :param topic: Targeted kafka topic
+    :param topic: Targeted kafka_ topic
     :param producer: Kafka producer
     :param message: payload message
-    :param headers: kafka headers with channels and CID List[tuple[str, bytes]]
+    :param headers: kafka_ headers with channels and CID List[tuple[str, bytes]]
     :return: None
     """
     producer.send(
@@ -114,7 +114,7 @@ async def _(
 ) -> JSONResponse:
     """
     API Endpoint which sends Kafka events into Kafka topic, subscribes to
-    redis channel and waits for response (key-value)
+    redis_ channel and waits for response (key-value)
 
     :param producer: Kafka producer dependency
     :param redis_pubsub: Redis PubSub client

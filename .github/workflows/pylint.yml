@@ -21,4 +21,4 @@ jobs:
           pip install pylint
       - name: Analysing the code with pylint
         run: |
-          pylint $(find . -name "*.py" | xargs) --ignore-patterns=test_.*?py --disable=logging-fstring-interpolation,missing-module-docstring
+          pylint $(find . -name "*.py" | xargs) --ignore-patterns=test_.*?py --disable=logging-fstring-interpolation,missing-module-docstring --ignore=src/models.py

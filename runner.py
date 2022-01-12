@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 # ! python3
 """
-Inits the faust app and process the data
+Inits the faust_ app and process the data
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from faust import Stream
 from src.config import settings
 from src.log import configure_basic_logging
 from src.models import MathModel
-from src.redis.redis_connect import REDIS_CONNECT
+from src.redis_.redis_connect import REDIS_CONNECT
 from src.service import operation_add
 
 configure_basic_logging()
@@ -32,7 +32,7 @@ async def math_streaming(
         stream: Stream
 ) -> None:
     """
-    Catches event from stream, process operations and publishes to redis topic
+    Catches event from stream, process operations and publishes to redis_ topic
 
     :param stream: Kafka event stream
     :return: None
