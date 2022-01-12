@@ -45,9 +45,6 @@ def _group_subscribe(
 
 
 def _gen_headers(
-        cid_name: str,
-        ok_channel_name: str,
-        err_channel_name: str,
         cid: str,
         ok_channel: str,
         err_channel: str,
@@ -59,9 +56,9 @@ def _gen_headers(
     :param err_channel: Channel for != 200 responses
     :return: List of headers tuple[str,bytes]
     """
-    return [(cid_name, bytes(cid, "utf-8")),
-            (ok_channel_name, bytes(ok_channel, "utf-8")),
-            (err_channel_name, bytes(err_channel, "utf-8"))]
+    return [(settings.CID, bytes(cid, "utf-8")),
+            (settings.REPLY_TO_OK_CHANNEL, bytes(ok_channel, "utf-8")),
+            (settings.REPLY_TO_NOT_OK_CHANNEL, bytes(err_channel, "utf-8"))]
 
 
 def _channel_preparation(
@@ -128,9 +125,6 @@ async def _(
     cid: Final = uuid4().hex
     ok_channel, err_channel = _channel_preparation(cid)
     kafka_headers = _gen_headers(
-        settings.CID,
-        settings.REPLY_TO_OK_CHANNEL,
-        settings.REPLY_TO_NOT_OK_CHANNEL,
         cid,
         ok_channel,
         err_channel,

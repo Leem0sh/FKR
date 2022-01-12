@@ -6,6 +6,7 @@ import pytest
 from pydantic import ValidationError, BaseModel
 
 from api import _channel_preparation, _gen_headers
+from src.config import settings
 from src.models import ResultModel, MathModel
 from src.service import operation_add
 
@@ -37,19 +38,15 @@ class MyTestCase(unittest.TestCase):
     def test_get_headers(
             self
     ):
-        cid_name = "a"
-        ok_channel_name = "b"
-        err_channel_name = "c"
         cid = uuid4().hex
         ok_channel = "ok"
         err_channel = "not_ok"
-        expected_output = [(cid_name, bytes(cid, "utf-8")),
-                           (ok_channel_name, bytes(ok_channel, "utf-8")),
-                           (err_channel_name, bytes(err_channel, "utf-8"))]
+        expected_output = [(settings.CID, bytes(cid, "utf-8")),
+                           (settings.REPLY_TO_OK_CHANNEL,
+                            bytes(ok_channel, "utf-8")),
+                           (settings.REPLY_TO_NOT_OK_CHANNEL,
+                            bytes(err_channel, "utf-8"))]
         headers = _gen_headers(
-            cid_name,
-            ok_channel_name,
-            err_channel_name,
             cid,
             ok_channel,
             err_channel
