@@ -1,6 +1,6 @@
 ## What is this? 
 
-Simple example of event-driven architecture with Kafka publish/subscribe, Redis Pub/Sub and Faust-streaming library.  
+Simple example of event-driven architecture with FastAPI gateway, Kafka publish/subscribe, Redis Pub/Sub and Faust-streaming library.  
 
 
 ## How to run:
